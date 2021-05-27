@@ -11,20 +11,23 @@ Appsignal.config = Appsignal::Config.new(
 Appsignal.start_logger
 Appsignal.start
 
-class Foo
-  def bar
-    1
+class OurImporter
+  def import_for_store(tenant_id, store_id, force = false)
+    puts tenant_id, store_id
   end
-  appsignal_instrument_method :bar
-
-  def self.bar
-    2
-  end
-  appsignal_instrument_class_method :bar
+  appsignal_instrument_method :import_for_store
 end
 
-Foo.new.bar
-Foo.bar
-sleep 5
+10.times do
+  begin
+    Appsignal.monitor_transaction("process_action.import", :class => "OurImporter", :method => "loop") do
+      OurImporter.new.import_for_store(1,2)
+    end
+  rescue
+    # Ignore exceptions
+  end
+  sleep 5
+end
+
 # Make sure all transactions are flushed to the Agent.
 Appsignal.stop
